@@ -61,3 +61,12 @@ def BollingerBands(arr: pd.Series, n: int = 20, k: float = 2.0) -> pd.DataFrame:
     lower = middle - (rolling_std * k)
     
     return upper, middle, lower
+
+def previous_low(arr: pd.Series, n: int) -> pd.Series:
+    """Return previous n period of time low"""
+    return pd.Series(arr).rolling(n).min()
+
+
+def previous_high(arr: pd.Series, n: int) -> pd.Series:
+    """Return previous n period of time low"""
+    return pd.Series(arr).rolling(n).max()
