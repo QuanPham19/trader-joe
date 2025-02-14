@@ -12,5 +12,7 @@ class BackTrader:
     def execute(self):
         bt = Backtest(data=self.data, strategy=self.strategy, commission=self.commission, exclusive_orders=self.exclusive_orders)
         stats = bt.run()
+
+        self.trades = stats._trades
         bt.plot()
         return stats

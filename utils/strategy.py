@@ -42,3 +42,22 @@ def RSI(arr, n: int = 14) -> pd.Series:
     rsi = 100 - (100 / (1 + rs))
 
     return rsi
+
+def BollingerBands(arr: pd.Series, n: int = 20, k: float = 2.0) -> pd.DataFrame:
+    """
+    Returns the Bollinger Bands: upper, lower, and middle (SMA).
+    - arr: input data series
+    - n: number of periods for the SMA
+    - k: number of standard deviations for the bands (default is 2)
+    """
+    # Calculate the middle band (SMA)
+    middle = SMA(arr, n)
+    
+    # Calculate the rolling standard deviation
+    rolling_std = pd.Series(arr).rolling(n).std()
+    
+    # Calculate the upper and lower bands
+    upper = middle + (rolling_std * k)
+    lower = middle - (rolling_std * k)
+    
+    return upper, middle, lower
