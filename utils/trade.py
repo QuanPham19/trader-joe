@@ -10,7 +10,7 @@ class BackTrader:
         self.exclusive_orders = exclusive_orders
 
     def execute(self):
-        bt = Backtest(data=self.data, strategy=self.strategy, commission=self.commission, exclusive_orders=self.exclusive_orders)
+        bt = Backtest(data=self.data, strategy=self.strategy, commission=self.commission, exclusive_orders=self.exclusive_orders, trade_on_close=True)
         stats = bt.run()
 
         self.trades = stats._trades
