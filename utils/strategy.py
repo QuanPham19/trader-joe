@@ -9,8 +9,8 @@ class EmaCross(Strategy):
     long_duration = 50
 
     id = 0
-    take_profit_ratio = 1.1
-    stop_loss_ratio = 0.9
+    take_profit_ratio = 1.02
+    stop_loss_ratio = 0.95
 
     def init(self):
         price = self.data.Close

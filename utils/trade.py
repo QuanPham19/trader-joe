@@ -3,13 +3,12 @@ from backtesting import Backtest, Strategy
 
 
 class BackTrader:
-    def __init__(self, data, strategy, commission, params, grid_search, plot=False, print=False):
+    def __init__(self, data, strategy, commission, plot=False, print=False):
         self.data = data 
         self.train_data = self.data['train_data']
         self.test_data = self.data['test_data']
 
         self.strategy = strategy 
-        self.params = params 
 
         self.commission = commission
         self.strategy.order_size = 0.1
@@ -18,20 +17,13 @@ class BackTrader:
 
         self.plot = plot
         self.print = print
-        self.grid_search = grid_search
+        # self.grid_search = grid_search
 
-    def execute(self, mode='train', plot=False, print=False):
-        if mode == 'test':
-            plot = True
-            data = self.test_data
-        elif mode == 'train':
-            plot = False 
-            data = self.train_data 
-
+    def execute(self, params, data, plot=False, print=False):
         bt = Backtest(data=data, strategy=self.strategy, commission=self.commission, finalize_trades=True, exclusive_orders=False, trade_on_close=True)
-        stats = bt.run(**self.params)
+        stats = bt.run(**params)
 
-        self.trades[mode] = stats._trades
+        self.trades = stats._trades
 
         if self.print:
             print(f"Sharpe Ratio is {stats.loc['Sharpe Ratio']} compared to criteria of 1.2")
@@ -46,15 +38,26 @@ class BackTrader:
 
         return stats
     
-    def optimize(self):
-        bt = Backtest(data=self.train_data, strategy=self.strategy, commission=self.commission, finalize_trades=True, exclusive_orders=False, trade_on_close=True)
-        stats, heatmap, result = bt.optimize(
-            maximize='Equity Final [$]',
-            method='sambo',
-            max_tries=100,
-            random_state=0,
-            return_heatmap=True,
-            return_optimization=True,
-            **self.grid_search)
+    def cross_val(self, grid, train_size, test_size, step_size, metrics='Equity Final [$]'):
+        n = len(self.train_data)
+
+        total = 0
+        count = 0
+
+        for start in range(0, n - train_size - test_size + 1, step_size):
+            df_train = self.train_data[start : (start + train_size)]
+            df_test = self.train_data[(start + train_size) : (start + train_size + test_size)]
+
+            bt = Backtest(data=df_train, strategy=self.strategy, commission=self.commission, finalize_trades=True, exclusive_orders=False, trade_on_close=True)
+            stats, result = bt.optimize(maximize=metrics, method='sambo', max_tries=100, random_state=0, return_heatmap=False, return_optimization=True, **grid)
+            params = {'short_duration': result['x'][0], 'long_duration': result['x'][1]}
+            print(params) 
+
+            stats = self.execute(params=params, data=df_test)
+            score = stats.loc[metrics]
+            print(score)
+
+            total += score
+            count += 1
         
-        return stats, heatmap, result
+        return total / count
