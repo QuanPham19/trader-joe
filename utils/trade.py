@@ -3,19 +3,17 @@ from backtesting import Backtest, Strategy
 
 
 class BackTrader:
-    def __init__(self, data, strategy, commission):
+    def __init__(self, data):
         self.data = data 
         self.train_data = self.data['train_data']
         self.test_data = self.data['test_data']
 
-        self.strategy = strategy 
-        self.commission = commission
-        self.strategy.order_size = 0.1
-
         self.trades = dict()
 
-    def execute(self, params, data, plot=False, print=False):
-        bt = Backtest(data=data, strategy=self.strategy, commission=self.commission, finalize_trades=True, exclusive_orders=False, trade_on_close=True)
+    def evaluate(self, data, strategy, params, order_size=0.1, commission=0.002, plot=False, print=False):
+        strategy.order_size = order_size
+
+        bt = Backtest(data=data, strategy=strategy, commission=commission, finalize_trades=True, exclusive_orders=False, trade_on_close=True)
         stats = bt.run(**params)
 
         self.trades = stats._trades
@@ -33,8 +31,9 @@ class BackTrader:
 
         return stats
     
-    def cross_val(self, grid, train_size, test_size, step_size, metrics='Equity Final [$]'):
+    def cross_val(self, strategy, grid, train_size, test_size, step_size, order_size=0.1, commission=0.002, metrics='Equity Final [$]'):
         n = len(self.train_data)
+        strategy.order_size = order_size
 
         total = 0
         count = 0
@@ -43,7 +42,7 @@ class BackTrader:
             df_train = self.train_data[start : (start + train_size)]
             df_test = self.train_data[(start + train_size) : (start + train_size + test_size)]
 
-            bt = Backtest(data=df_train, strategy=self.strategy, commission=self.commission, finalize_trades=True, exclusive_orders=False, trade_on_close=True)
+            bt = Backtest(data=df_train, strategy=strategy, commission=commission, finalize_trades=True, exclusive_orders=False, trade_on_close=True)
             stats, result = bt.optimize(maximize=metrics, method='sambo', max_tries=100, random_state=0, return_heatmap=False, return_optimization=True, **grid)
 
             # To be upgraded
@@ -51,7 +50,7 @@ class BackTrader:
             best_params = {key: result.x[i] for i, key in enumerate(grid.keys())}
             print(best_params) 
 
-            stats = self.execute(params=best_params, data=df_test)
+            stats = self.evaluate(data=df_test, strategy=strategy, params=best_params, order_size=order_size, commission=commission)
             score = stats.loc[metrics]
             print(score)
 
