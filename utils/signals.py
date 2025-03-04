@@ -70,3 +70,37 @@ def previous_low(arr: pd.Series, n: int) -> pd.Series:
 def previous_high(arr: pd.Series, n: int) -> pd.Series:
     """Return previous n period of time low"""
     return pd.Series(arr).rolling(n).max()
+
+def ATR(data: pd.DataFrame, period: int = 14) -> pd.Series:
+    """
+    Calculate the Average True Range (ATR) for a given DataFrame of price data.
+
+
+    Parameters:
+        data (pd.DataFrame): DataFrame with columns 'High', 'Low', and 'Close'
+        period (int): Number of periods to use for the ATR calculation (default is 14)
+
+
+    Returns:
+        pd.Series: The ATR values computed over the specified period.
+    """
+    # Convert the columns to pd.Series if they're not already
+    high = pd.Series(data['High'])
+    low = pd.Series(data['Low'])
+    close = pd.Series(data['Close'])
+   
+    # Calculate the three components of the True Range
+    high_low = high - low
+    high_close = (high - close.shift(1)).abs()
+    low_close = (low - close.shift(1)).abs()
+
+
+    # True Range is the maximum of these three values
+    true_range = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)
+
+
+    # ATR is computed as a simple moving average of the True Range over the specified period.
+    atr_values = true_range.rolling(window=period, min_periods=period).mean()
+
+
+    return atr_values
