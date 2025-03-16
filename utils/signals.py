@@ -25,7 +25,7 @@ def MACD(arr: pd.Series, short_n: int = 12, long_n: int = 26, signal_n: int = 9)
     signal_line = EMA(macd_line, signal_n)
     return macd_line, signal_line
 
-def RSI(arr, n: int = 14) -> pd.Series:
+def RSI(arr, n: int = 14, k: int = 14) -> pd.Series:
     """
     Returns `n`-period Relative Strength Index (RSI) of array `arr`.
     """
@@ -41,7 +41,9 @@ def RSI(arr, n: int = 14) -> pd.Series:
     rs = avg_gain / avg_loss
     rsi = 100 - (100 / (1 + rs))
 
-    return rsi
+    rsi_ma = rsi.rolling(k).mean()
+
+    return rsi / 100, rsi_ma / 100
 
 def BollingerBands(arr: pd.Series, n: int = 20, k: float = 2.0) -> pd.DataFrame:
     """

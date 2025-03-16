@@ -22,6 +22,7 @@ class DataLoader:
             multi_level_index=False, 
             interval=self.freq,
             )
+        df['Color'] = (df['Close'] > df['Open']) 
         self.data['price_data'] = df
         return df
     
