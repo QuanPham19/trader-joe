@@ -106,3 +106,33 @@ def ATR(data: pd.DataFrame, period: int = 14) -> pd.Series:
 
 
     return atr_values
+
+def OBV(price: pd.Series, volume: pd.Series) -> pd.Series:
+    # Calculate the price difference
+    diff = price.diff()
+
+    # Compute OBV changes: add volume if price increases, subtract if it decreases,
+    # and 0 if there's no change
+    obv_changes = np.where(diff > 0, volume, np.where(diff < 0, -volume, 0))
+    
+    # Create a pandas Series with the same index as the price and calculate cumulative sum
+    obv = pd.Series(obv_changes, index=price.index).cumsum()
+    
+    return obv
+
+def BBW(arr, n: int = 10) -> pd.Series:
+    """
+    Returns Bollinger Band Width (BBW) of array `arr` over `n` periods.
+    `k` is the smoothing period for signal generation.
+    """
+    arr = pd.Series(arr)
+    
+    sma = arr.rolling(n).mean()  # Middle Band
+    std = arr.rolling(n).std()   # Standard Deviation
+    
+    upper_band = sma + 2 * std
+    lower_band = sma - 2 * std
+
+    bbw = (upper_band - lower_band) / sma  # Normalize by SMA
+        
+    return bbw

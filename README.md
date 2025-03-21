@@ -10,3 +10,5 @@
 
 - Volume: OBV, A/D, 25% rule vs SMA(10) 
 - Aim to reach 3 strategy class: MACD, RSI, SMA crossing
+
+- Problem: Sharpe ratio is low; Sharpe ratio in the library is calculated without risk free rate

@@ -230,3 +230,4 @@ class testRSI(Strategy):
                     trade.close()
            
             self.sell(size = self.order_size, sl = short_stop_loss, tp = current_price*(1-self.take_profit_ratio), tag = "Short")
+

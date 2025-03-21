@@ -62,4 +62,10 @@ class DataLoader:
     def run(self):
         self.get_price_data()
         self.split(key='price_data')
-        self.plot_candlestick(self.data['test_data'])        
+        self.plot_candlestick(self.data['test_data'])  
+        
+    def plot_train_data(self):
+        self.get_price_data()
+        self.split(key='price_data')
+        self.plot_candlestick(self.data['train_data'])       
+              
