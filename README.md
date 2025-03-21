@@ -12,3 +12,9 @@
 - Aim to reach 3 strategy class: MACD, RSI, SMA crossing
 
 - Problem: Sharpe ratio is low; Sharpe ratio in the library is calculated without risk free rate
+
+- Volume dynamics
+- Pattern for 1 strategy
+- Stop loss for extreme case
+
+- Furthr: pick stock

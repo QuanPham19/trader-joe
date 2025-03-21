@@ -109,11 +109,11 @@ def ATR(data: pd.DataFrame, period: int = 14) -> pd.Series:
 
 def OBV(price: pd.Series, volume: pd.Series) -> pd.Series:
     # Calculate the price difference
-    diff = price.diff()
+    diff = np.diff(price, prepend=diff[0])
 
     # Compute OBV changes: add volume if price increases, subtract if it decreases,
     # and 0 if there's no change
-    obv_changes = np.where(diff > 0, volume, np.where(diff < 0, -volume, 0))
+    obv_changes = np.where(diff > 0, volume[1:], np.where(diff < 0, -volume, 0))
     
     # Create a pandas Series with the same index as the price and calculate cumulative sum
     obv = pd.Series(obv_changes, index=price.index).cumsum()
