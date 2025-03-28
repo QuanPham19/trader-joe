@@ -1,35 +1,48 @@
 import pandas as pd 
 import numpy as np
 
-def SMA(arr: pd.Series, n: int) -> pd.Series:
+def Change(data, period: int = 10):
+    """
+    Calculate the price change over a specific period.
+    Returns a NumPy array of the same length as price.
+    """
+    price = data.Close
+    change = np.full(len(price), 0)
+    change[period:] = price[period:] - price[:-period]
+    return change
+
+def SMA(data, n: int) -> pd.Series:
     """
     Returns `n`-period simple moving average of array `arr`.
     """
+    arr = data.Close
     return pd.Series(arr).rolling(n).mean()
 
-def EMA(arr: pd.Series, n: int) -> pd.Series:
+def EMA(data, n: int) -> pd.Series:
     """
     Returns `n`-period exponential moving average of array `arr`.
     """
+    arr = data.Close
     return pd.Series(arr).ewm(span=n, adjust=False).mean()
 
-def MACD(arr: pd.Series, short_n: int = 12, long_n: int = 26, signal_n: int = 9):
+def MACD(data, short_n: int = 12, long_n: int = 26, signal_n: int = 9):
     """
     Returns MACD line and Signal line.
     MACD Line = EMA(short_n) - EMA(long_n)
     Signal Line = EMA(MACD Line, signal_n)
     """
-    short_ema = EMA(arr, short_n)
-    long_ema = EMA(arr, long_n)
+    arr = data.Close
+    short_ema = pd.Series(arr).ewm(span=short_n, adjust=False).mean()
+    long_ema = pd.Series(arr).ewm(span=long_n, adjust=False).mean()
     macd_line = short_ema - long_ema
-    signal_line = EMA(macd_line, signal_n)
+    signal_line = pd.Series(macd_line).ewm(span=signal_n, adjust=False).mean()
     return macd_line, signal_line
 
-def RSI(arr, n: int = 14, k: int = 14) -> pd.Series:
+def RSI(data, n: int = 14, k: int = 14) -> pd.Series:
     """
     Returns `n`-period Relative Strength Index (RSI) of array `arr`.
     """
-    arr = pd.Series(arr)  # Ensure arr is a Pandas Series
+    arr = data.Close  # Ensure arr is a Pandas Series
     delta = np.diff(arr, prepend=arr[0])  # Compute differences manually
 
     gain = np.where(delta > 0, delta, 0)
@@ -45,7 +58,7 @@ def RSI(arr, n: int = 14, k: int = 14) -> pd.Series:
 
     return rsi / 100, rsi_ma / 100
 
-def BollingerBands(arr: pd.Series, n: int = 20, k: float = 2.0) -> pd.DataFrame:
+def BollingerBands(data, n: int = 20, k: float = 2.0) -> pd.DataFrame:
     """
     Returns the Bollinger Bands: upper, lower, and middle (SMA).
     - arr: input data series
@@ -53,7 +66,8 @@ def BollingerBands(arr: pd.Series, n: int = 20, k: float = 2.0) -> pd.DataFrame:
     - k: number of standard deviations for the bands (default is 2)
     """
     # Calculate the middle band (SMA)
-    middle = SMA(arr, n)
+    arr = data.Close
+    middle = pd.Series(arr).rolling(n).mean()
     
     # Calculate the rolling standard deviation
     rolling_std = pd.Series(arr).rolling(n).std()
@@ -64,16 +78,18 @@ def BollingerBands(arr: pd.Series, n: int = 20, k: float = 2.0) -> pd.DataFrame:
     
     return upper, middle, lower
 
-def previous_low(arr: pd.Series, n: int) -> pd.Series:
+def previous_low(data, n: int) -> pd.Series:
     """Return previous n period of time low"""
+    arr = data.Close
     return pd.Series(arr).rolling(n).min()
 
 
-def previous_high(arr: pd.Series, n: int) -> pd.Series:
+def previous_high(data, n: int) -> pd.Series:
     """Return previous n period of time low"""
+    arr = data.Close
     return pd.Series(arr).rolling(n).max()
 
-def ATR(data: pd.DataFrame, period: int = 14) -> pd.Series:
+def ATR(data, period: int = 14) -> pd.Series:
     """
     Calculate the Average True Range (ATR) for a given DataFrame of price data.
 
@@ -107,25 +123,26 @@ def ATR(data: pd.DataFrame, period: int = 14) -> pd.Series:
 
     return atr_values
 
-def OBV(price: pd.Series, volume: pd.Series) -> pd.Series:
+def OBV(data, volume: pd.Series) -> pd.Series:
     # Calculate the price difference
-    diff = np.diff(price, prepend=diff[0])
+    arr = data.Close
+    diff = np.diff(arr, prepend=diff[0])
 
     # Compute OBV changes: add volume if price increases, subtract if it decreases,
     # and 0 if there's no change
     obv_changes = np.where(diff > 0, volume[1:], np.where(diff < 0, -volume, 0))
     
     # Create a pandas Series with the same index as the price and calculate cumulative sum
-    obv = pd.Series(obv_changes, index=price.index).cumsum()
+    obv = pd.Series(obv_changes, index=arr.index).cumsum()
     
     return obv
 
-def BBW(arr, n: int = 10) -> pd.Series:
+def BBW(data, n: int = 10) -> pd.Series:
     """
     Returns Bollinger Band Width (BBW) of array `arr` over `n` periods.
     `k` is the smoothing period for signal generation.
     """
-    arr = pd.Series(arr)
+    arr = data.Close
     
     sma = arr.rolling(n).mean()  # Middle Band
     std = arr.rolling(n).std()   # Standard Deviation

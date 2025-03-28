@@ -18,3 +18,6 @@
 - Stop loss for extreme case
 
 - Furthr: pick stock
+
+- Add macro data 
+- Test factor model
